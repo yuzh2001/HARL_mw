@@ -1,0 +1,13 @@
+defaults:
+  - algorithm: mappo
+  - environment: pettingzoo_mw
+  
+  - logger: wandb
+  - override hydra/job_logging: colorlog
+  - override hydra/hydra_logging: colorlog
+  - override hydra/launcher: joblib
+  - _self_
+
+hydra:
+  searchpath:
+    - file://src/configs/

@@ -417,3 +417,5 @@ tags
 
 # WandB files
 wandb/
+outputs/
+multirun/
