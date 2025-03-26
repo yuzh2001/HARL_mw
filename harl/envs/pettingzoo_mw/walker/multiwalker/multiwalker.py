@@ -144,43 +144,49 @@ class raw_env(AECEnv, EzPickle):
     def __init__(self, *args, **kwargs):
         EzPickle.__init__(self, *args, **kwargs)
 
-        self.use_angle_reward = kwargs.get("use_angle_reward", False)
-        self.use_f_disturbance = kwargs.get("use_f_disturbance", False)
-        self.use_motor_disturbance = kwargs.get("use_motor_disturbance", False)
-        self.use_package_mass_disturbance = kwargs.get(
-            "use_package_mass_disturbance", False
-        )
+        custom_parameters = kwargs.get("custom", {"use_angle_reward": False})
+        del kwargs["custom"]
+
+        self.disturbs = custom_parameters.get("disturbs", {
+            "friction": {
+                "disturb_enabled": False,
+                "obs_enabled": False,
+            },
+            "motor": {
+                "disturb_enabled": False,
+                "obs_enabled": False,
+            },
+            "package_mass": {
+                "disturb_enabled": False,
+                "obs_enabled": False,
+            },
+        })
+
+        self.use_angle_reward = custom_parameters.get("use_angle_reward", False)
 
         assert (
             sum(
-                [
-                    self.use_f_disturbance,
-                    self.use_motor_disturbance,
-                    self.use_package_mass_disturbance,
-                ]
+            [
+                self.disturbs[k]["disturb_enabled"]
+                for k in self.disturbs.keys()
+            ]
             )
             <= 1
-        ), "f_disturbance、motor_disturbance和package_mass_disturbance只能有一个为True"
-        self.use_package_mass_obs = kwargs.get("use_package_mass_obs", False)
-        self.use_f_obs = kwargs.get("use_f_obs", False)
-        self.use_motor_obs = kwargs.get("use_motor_obs", False)
-        del kwargs["use_f_obs"]
-        del kwargs["use_f_disturbance"]
-        del kwargs["use_angle_reward"]
-        del kwargs["use_motor_obs"]
-        del kwargs["use_motor_disturbance"]
-        if kwargs.get("use_package_mass_obs", -1) != -1:
-            del kwargs["use_package_mass_obs"]
-            del kwargs["use_package_mass_disturbance"]
+        ), "目前只支持同时启用一个扰动"
+        assert (
+            "friction" in self.disturbs and
+            "motor" in self.disturbs and
+            "package_mass" in self.disturbs
+        ), "disturbs must contain 'friction', 'motor', and 'package_mass' keys"
 
-        if self.use_f_obs:
+        if self.disturbs["friction"]["obs_enabled"]:
             if self.use_angle_reward:
                 self.env = _env_fric_stable(*args, **kwargs)
             else:
                 self.env = _env_fric(*args, **kwargs)
-        elif self.use_motor_obs:
+        elif self.disturbs["motor"]["obs_enabled"]:
             self.env = _env_motor(*args, **kwargs)
-        elif self.use_package_mass_obs:
+        elif self.disturbs["package_mass"]["obs_enabled"]:
             self.env = _env_package_mass(*args, **kwargs)
         else:
             if self.use_angle_reward:
@@ -290,11 +296,12 @@ class raw_env(AECEnv, EzPickle):
                     iter_agents.remove(agent)
             self._agent_selector.reinit(iter_agents)
 
+            # eval时引入的扰动
             if self.turbances_array is not None and len(self.turbances_array) > 0:
                 for disturbance in self.turbances_array:
                     disturbance.execute_with_frame(self.env.frames)
-            # 引入扰动
-            if self.use_f_disturbance:
+            # 训练时引入的扰动
+            if self.disturbs["friction"]["disturb_enabled"]:
                 if self.disturbance["is_disturbancing"]:
                     if self.env.frames >= self.disturbance["end_at"]:
                         # print(f"扰动结束，{self.env.frames}")
@@ -309,7 +316,7 @@ class raw_env(AECEnv, EzPickle):
                         self.disturbance["end_at"] = self.env.frames + 200
                         for ter in self.env.terrain:
                             ter.fixtures[0].friction = 0.1
-            if self.use_motor_disturbance:
+            elif self.disturbs["motor"]["disturb_enabled"]:
                 if self.disturbance["is_disturbancing"]:
                     if self.env.frames >= self.disturbance["end_at"]:
                         self.disturbance["is_disturbancing"] = False
@@ -324,7 +331,7 @@ class raw_env(AECEnv, EzPickle):
                         for walker in self.env.agents:
                             walker.speed_factor_hip = 20
                             walker.speed_factor_knee = 20
-            if self.use_package_mass_disturbance:
+            elif self.disturbs["package_mass"]["disturb_enabled"]:
                 if self.disturbance["is_disturbancing"]:
                     if self.env.frames >= self.disturbance["end_at"]:
                         self.disturbance["is_disturbancing"] = False

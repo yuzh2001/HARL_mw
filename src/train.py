@@ -15,10 +15,12 @@ def main(cfg: DictConfig):
 
     algorithm_name = cfg.algorithm.name
     env_name = cfg.environment.name
+    scenario_name = cfg.environment.scenario
+
 
     from datetime import datetime
     ts = datetime.now().strftime("%m%d-%H%M")
-    run_name = f"[{algorithm_name}]_{ts}"
+    run_name = f"[{algorithm_name}]<{scenario_name}>_{ts}"
 
     basic_info = {
         "env": env_name,
@@ -45,6 +47,7 @@ def main(cfg: DictConfig):
     del algo_dict["name"]
     env_dict = _to_dict(env_args)
     del env_dict["name"]
+    del env_dict["scenario"]
 
     runner = RUNNER_REGISTRY[algorithm_name](basic_info, algo_dict, env_dict)
     runner.run()

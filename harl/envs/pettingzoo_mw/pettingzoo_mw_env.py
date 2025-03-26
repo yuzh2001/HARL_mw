@@ -2,7 +2,7 @@ import copy
 import logging
 import supersuit as ss
 # from pettingzoo.sisl import multiwalker_v9
-from .walker.multiwalker_stable import parallel_env as multiwalker_stable_parallel_env
+from .walker.multiwalker.multiwalker import parallel_env as multiwalker_stable_parallel_env
 
 logging.basicConfig()
 logging.getLogger().setLevel(logging.ERROR)

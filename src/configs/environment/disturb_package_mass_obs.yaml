@@ -1,0 +1,13 @@
+defaults:
+  - original/pettingzoo_mw@_here_
+  - _self_
+
+name: pettingzoo_mw
+
+scenario: disturb_package_mass_obs
+
+custom:
+  disturbs:
+    package_mass:
+      disturb_enabled: True
+      obs_enabled: True

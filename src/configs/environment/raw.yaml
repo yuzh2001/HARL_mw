@@ -1,0 +1,10 @@
+defaults:
+  - original/pettingzoo_mw@_here_
+  - _self_
+
+name: pettingzoo_mw
+
+scenario: raw
+
+custom:
+  use_angle_reward: False

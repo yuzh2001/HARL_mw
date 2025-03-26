@@ -1,2 +1,22 @@
 n_walkers: 3
+max_cycles: 500
 remove_on_fall: False
+
+custom:
+  use_angle_reward: True
+
+  disturbs:
+    # f
+    friction:
+      disturb_enabled: False
+      obs_enabled: False
+
+    # motor
+    motor:
+      disturb_enabled: False
+      obs_enabled: False
+
+    # package_mass
+    package_mass:
+      disturb_enabled: False
+      obs_enabled: False
