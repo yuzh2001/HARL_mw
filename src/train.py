@@ -28,7 +28,7 @@ def main(cfg: DictConfig):
         "exp_name": run_name,
     }
 
-    if env_name == 'pettingzoo_mw':
+    if env_name == 'pettingzoo_mw' and algo_args.train.get('episode_length') is not None:
         algo_args.train.episode_length = 500
     
     def _to_dict(cfg1: DictConfig):
