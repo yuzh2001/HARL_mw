@@ -414,3 +414,6 @@ Sessionx.vim
 tags
 # Persistent undo
 [._]*.un~
+
+# WandB files
+wandb/

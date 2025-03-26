@@ -528,7 +528,7 @@ class OffPolicyBaseRunner:
             eval_score_cnt = 0
         episode_lens = []
         one_episode_len = np.zeros(
-            self.algo_args["eval"]["n_eval_rollout_threads"], dtype=np.int
+            self.algo_args["eval"]["n_eval_rollout_threads"], dtype=np.int32
         )
 
         eval_obs, eval_share_obs, eval_available_actions = self.eval_envs.reset()

@@ -2,7 +2,7 @@
 import argparse
 import json
 from harl.utils.configs_tools import get_defaults_yaml_args, update_args
-
+import wandb
 
 def main():
     """Main function."""
@@ -40,6 +40,7 @@ def main():
             "dexhands",
             "smacv2",
             "lag",
+            "pettingzoo_mw"
         ],
         help="Environment name. Choose from: smac, mamujoco, pettingzoo_mpe, gym, football, dexhands, smacv2, lag.",
     )
@@ -83,12 +84,22 @@ def main():
         algo_args["eval"]["use_eval"] = False
         algo_args["train"]["episode_length"] = env_args["hands_episode_length"]
 
+    from datetime import datetime
+    ts = datetime.now().strftime("%Y%m%d%H%M%S")
+    wandb.init(project="HARL", 
+               config=args, 
+               sync_tensorboard=True, 
+               name=f"{args['algo']}-{ts}"
+               )
     # start training
     from harl.runners import RUNNER_REGISTRY
 
     runner = RUNNER_REGISTRY[args["algo"]](args, algo_args, env_args)
     runner.run()
     runner.close()
+    import requests
+
+    requests.get("https://api.day.app/Ya5CADvAuDWf5NR4E8ZGt5/maddpg训练完成")
 
 
 if __name__ == "__main__":

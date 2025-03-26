@@ -19,7 +19,7 @@ class SMACLogger(BaseLogger):
         self.episodes = episodes
         self.episode_lens = []
         self.one_episode_len = np.zeros(
-            self.algo_args["train"]["n_rollout_threads"], dtype=np.int
+            self.algo_args["train"]["n_rollout_threads"], dtype=np.int32
         )
         self.last_battles_game = np.zeros(
             self.algo_args["train"]["n_rollout_threads"], dtype=np.float32

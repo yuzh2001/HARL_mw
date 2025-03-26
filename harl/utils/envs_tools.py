@@ -93,6 +93,12 @@ def make_train_env(env_name, seed, n_threads, env_args):
                 from harl.envs.lag.lag_env import LAGEnv
 
                 env = LAGEnv(env_args)
+            elif env_name == "pettingzoo_mw":
+                from harl.envs.pettingzoo_mw.pettingzoo_mw_env import (
+                    PettingZooMWEnv,
+                )
+
+                env = PettingZooMWEnv(env_args)
             else:
                 print("Can not support the " + env_name + "environment.")
                 raise NotImplementedError
@@ -146,6 +152,12 @@ def make_eval_env(env_name, seed, n_threads, env_args):
                 from harl.envs.lag.lag_env import LAGEnv
 
                 env = LAGEnv(env_args)
+            elif env_name == "pettingzoo_mw":
+                from harl.envs.pettingzoo_mw.pettingzoo_mw_env import (
+                    PettingZooMWEnv,
+                )
+
+                env = PettingZooMWEnv(env_args)
             else:
                 print("Can not support the " + env_name + "environment.")
                 raise NotImplementedError
@@ -219,6 +231,13 @@ def make_render_env(env_name, seed, env_args):
 
         env = LAGEnv(env_args)
         env.seed(seed * 60000)
+    elif env_name == "pettingzoo_mw":
+        from harl.envs.pettingzoo_mw.pettingzoo_mw_env import (
+            PettingZooMWEnv,
+        )
+
+        env = PettingZooMWEnv(env_args)
+        env.seed(seed * 60000)
     else:
         print("Can not support the " + env_name + "environment.")
         raise NotImplementedError
@@ -256,4 +275,6 @@ def get_num_agents(env, env_args, envs):
     elif env == "dexhands":
         return envs.n_agents
     elif env == "lag":
+        return envs.n_agents
+    elif env == "pettingzoo_mw":
         return envs.n_agents
