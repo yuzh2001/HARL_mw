@@ -381,7 +381,7 @@ class OffPolicyBaseRunner:
                 if dones_env[i]:
                     if not (
                         "bad_transition" in infos[i][0].keys()
-                        and infos[i][0]["bad_transition"] == True
+                        and infos[i][0]["bad_transition"] == True # noqa: E712
                     ):
                         terms[i][0] = True
         elif self.state_type == "FP":
@@ -394,7 +394,7 @@ class OffPolicyBaseRunner:
                     if dones[i][agent_id]:
                         if not (
                             "bad_transition" in infos[i][agent_id].keys()
-                            and infos[i][agent_id]["bad_transition"] == True
+                            and infos[i][agent_id]["bad_transition"] == True # noqa: E712
                         ):
                             terms[i][agent_id][0] = True
 

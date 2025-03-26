@@ -142,7 +142,7 @@ class SMACLogger(BaseLogger):
 
     def eval_thread_done(self, tid):
         super().eval_thread_done(tid)
-        if self.eval_infos[tid][0][self.win_key] == True:
+        if self.eval_infos[tid][0][self.win_key]:
             self.eval_battles_won += 1
 
     def eval_log(self, eval_episode):

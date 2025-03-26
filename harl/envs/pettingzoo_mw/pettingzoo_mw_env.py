@@ -1,9 +1,7 @@
 import copy
-import importlib
 import logging
-import numpy as np
 import supersuit as ss
-from pettingzoo.sisl import multiwalker_v9
+# from pettingzoo.sisl import multiwalker_v9
 from .walker.multiwalker_stable import parallel_env as multiwalker_stable_parallel_env
 
 logging.basicConfig()
@@ -89,17 +87,17 @@ class PettingZooMWEnv:
     def seed(self, seed):
         self._seed = seed
 
-    def wrap(self, l):
+    def wrap(self, lam):
         d = {}
         for i, agent in enumerate(self.agents):
-            d[agent] = l[i]
+            d[agent] = lam[i]
         return d
 
     def unwrap(self, d):
-        l = []
+        _tmp = []
         for agent in self.agents:
-            l.append(d[agent])
-        return l
+            _tmp.append(d[agent])
+        return _tmp
 
     def repeat(self, a):
         return [a for _ in range(self.n_agents)]

@@ -116,7 +116,7 @@ def convert_json(obj):
         elif isinstance(obj, list):
             return [convert_json(x) for x in obj]
 
-        elif hasattr(obj, "__name__") and not ("lambda" in obj.__name__):
+        elif hasattr(obj, "__name__") and ("lambda" not in obj.__name__):
             return convert_json(obj.__name__)
 
         elif hasattr(obj, "__dict__") and obj.__dict__:
