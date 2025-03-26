@@ -2,4 +2,8 @@ defaults:
   - original/maddpg@_here_
   - _self_
 
+train:
+  # number of parallel environments for training data collection
+  n_rollout_threads: 20
+
 name: maddpg
