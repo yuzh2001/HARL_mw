@@ -5,7 +5,7 @@ defaults:
   - logger: wandb
   - override hydra/job_logging: colorlog
   - override hydra/hydra_logging: colorlog
-  - override hydra/launcher: joblib
+  - override hydra/launcher: submitit_local
   - _self_
 
 hydra:

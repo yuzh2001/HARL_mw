@@ -17,8 +17,8 @@ def main(cfg: DictConfig):
     env_name = cfg.environment.name
 
     from datetime import datetime
-    ts = datetime.now().strftime("%Y%m%d%H%M%S")
-    run_name = algorithm_name + "-" + env_name + "-" + ts
+    ts = datetime.now().strftime("%m%d-%H%M")
+    run_name = f"[{algorithm_name}]_{ts}"
 
     basic_info = {
         "env": env_name,
