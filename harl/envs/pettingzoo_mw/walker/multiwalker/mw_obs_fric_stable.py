@@ -377,7 +377,7 @@ class MultiWalkerEnv:
             low=-np.float32(np.inf),
             high=+np.float32(np.inf),
             shape=(
-                self.n_walkers * 24 + 3,
+                self.n_walkers * 25 + 3,
             ),  # 24 is the observation space of each walker, 3 is the package observation space
             dtype=np.float32,
         )

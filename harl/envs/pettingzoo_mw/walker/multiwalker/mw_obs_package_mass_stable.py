@@ -279,7 +279,7 @@ class BipedalWalker(Agent):
         return spaces.Box(
             low=np.float32(-np.inf),
             high=np.float32(np.inf),
-            shape=(25 + 2 + 3,),
+            shape=(25 + 4 + 3,),
             dtype=np.float32,
         )
 
@@ -371,7 +371,7 @@ class MultiWalkerEnv:
             low=-np.float32(np.inf),
             high=+np.float32(np.inf),
             shape=(
-                self.n_walkers * 26 + 3,
+                self.n_walkers * 25 + 3,
             ),  # 24 is the observation space of each walker, 3 is the package observation space
             dtype=np.float32,
         )
