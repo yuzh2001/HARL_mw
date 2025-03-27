@@ -1,4 +1,5 @@
 """Base runner for off-policy algorithms."""
+
 import os
 import time
 import torch
@@ -286,6 +287,20 @@ class OffPolicyBaseRunner:
                         f"Env {self.args['env']} Task {self.task_name} Algo {self.args['algo']} Exp {self.args['exp_name']} Evaluation at step {cur_step} / {self.algo_args['train']['num_env_steps']}:"
                     )
                     self.eval(cur_step)
+                    if self.best_eval is None:
+                        self.best_eval = -10000
+                    eval_result = np.mean(
+                        np.concatenate(
+                            [
+                                rewards
+                                for rewards in self.logger.eval_episode_rewards
+                                if rewards
+                            ]
+                        )
+                    )
+                    if eval_result > self.best_eval:
+                        self.save()
+                        self.best_eval = eval_result
                 else:
                     print(
                         f"Env {self.args['env']} Task {self.task_name} Algo {self.args['algo']} Exp {self.args['exp_name']} Step {cur_step} / {self.algo_args['train']['num_env_steps']}, average step reward in buffer: {self.buffer.get_mean_rewards()}.\n"
@@ -381,7 +396,7 @@ class OffPolicyBaseRunner:
                 if dones_env[i]:
                     if not (
                         "bad_transition" in infos[i][0].keys()
-                        and infos[i][0]["bad_transition"] == True # noqa: E712
+                        and infos[i][0]["bad_transition"] == True  # noqa: E712
                     ):
                         terms[i][0] = True
         elif self.state_type == "FP":
@@ -394,7 +409,7 @@ class OffPolicyBaseRunner:
                     if dones[i][agent_id]:
                         if not (
                             "bad_transition" in infos[i][agent_id].keys()
-                            and infos[i][agent_id]["bad_transition"] == True # noqa: E712
+                            and infos[i][agent_id]["bad_transition"] == True  # noqa: E712
                         ):
                             terms[i][agent_id][0] = True
 

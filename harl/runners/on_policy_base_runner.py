@@ -262,7 +262,22 @@ class OnPolicyBaseRunner:
                 if self.algo_args["eval"]["use_eval"]:
                     self.prep_rollout()
                     self.eval()
-                self.save()
+                    if self.best_eval is None:
+                        self.best_eval = -10000
+                    eval_result = np.mean(
+                        np.concatenate(
+                            [
+                                rewards
+                                for rewards in self.logger.eval_episode_rewards
+                                if rewards
+                            ]
+                        )
+                    )
+                    if eval_result > self.best_eval:
+                        self.save()
+                        self.best_eval = eval_result
+                else:
+                    self.save()
 
             self.after_update()
 
@@ -356,16 +371,16 @@ class OnPolicyBaseRunner:
         ) = data
 
         dones_env = np.all(dones, axis=1)  # if all agents are done, then env is done
-        rnn_states[
-            dones_env == True
-        ] = np.zeros(  # if env is done, then reset rnn_state to all zero
-            (
-                (dones_env == True).sum(),
-                self.num_agents,
-                self.recurrent_n,
-                self.rnn_hidden_size,
-            ),
-            dtype=np.float32,
+        rnn_states[dones_env == True] = (
+            np.zeros(  # if env is done, then reset rnn_state to all zero
+                (
+                    (dones_env == True).sum(),
+                    self.num_agents,
+                    self.recurrent_n,
+                    self.rnn_hidden_size,
+                ),
+                dtype=np.float32,
+            )
         )
 
         # If env is done, then reset rnn_state_critic to all zero
@@ -557,16 +572,16 @@ class OnPolicyBaseRunner:
 
             eval_dones_env = np.all(eval_dones, axis=1)
 
-            eval_rnn_states[
-                eval_dones_env == True
-            ] = np.zeros(  # if env is done, then reset rnn_state to all zero
-                (
-                    (eval_dones_env == True).sum(),
-                    self.num_agents,
-                    self.recurrent_n,
-                    self.rnn_hidden_size,
-                ),
-                dtype=np.float32,
+            eval_rnn_states[eval_dones_env == True] = (
+                np.zeros(  # if env is done, then reset rnn_state to all zero
+                    (
+                        (eval_dones_env == True).sum(),
+                        self.num_agents,
+                        self.recurrent_n,
+                        self.rnn_hidden_size,
+                    ),
+                    dtype=np.float32,
+                )
             )
 
             eval_masks = np.ones(
