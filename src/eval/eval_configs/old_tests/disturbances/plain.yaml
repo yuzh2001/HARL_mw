@@ -1,0 +1,25 @@
+task:
+  name: "plain"
+  description: "不引入任何扰动。"
+  seed: 42
+disturbances:
+  - name: "walker_motor_speed_change"
+    start_at: 300
+    end_at: 1800
+    disturbance_args:
+      speed_factor_hip: 1
+      speed_factor_knee: 2
+      effect_on_agent:
+        - 0
+        - 1
+        - 2
+        - 3
+        - 4
+  - name: "walker_motor_speed_change"
+    start_at: 0
+    end_at: 1800
+    disturbance_args:
+      speed_factor_hip: 8
+      speed_factor_knee: 12
+      effect_on_agent:
+        - 5

@@ -1,0 +1,63 @@
+defaults: 
+  - default
+  - render: gif_and_movie
+  - disturbances: only_world_friction
+  - _self_
+
+run_name: 0214，加入f
+
+seed: 42
+first_baseline: False
+eval_episodes: 100
+
+show_reward_curve: False
+
+checkpoint_path:
+  - path: 20250220-051033_angle_f_obs(angle_f_obs_20250220-030120).zip
+    desc: 在摩擦环境；有对 f 的观察
+    use_f_obs: True
+    use_f_disturbance: False
+    use_angle_reward: True
+  - path: 20250220-030041_angle_f(angle_f_20250220-005350).zip
+    desc: 在摩擦环境；没有对 f 的观察
+    use_f_obs: False
+    use_f_disturbance: False
+    use_angle_reward: True
+  - path: 20250219-191802_angle_base(angle_base_20250219-171250).zip
+    desc: 在普通环境(新)
+    use_f_obs: False
+    use_f_disturbance: False
+    use_angle_reward: True
+  - path: 20250215-024717_256net500bslr2e-4(256net500bslr2e-4_20250215-003756).zip
+    desc: 在普通环境(旧)
+    use_f_obs: False
+    use_f_disturbance: False
+    use_angle_reward: True
+  - path: 20250215-024717_256net500bslr2e-4(256net500bslr2e-4_20250215-003756).zip
+    desc: 在普通环境(旧)
+    use_f_obs: False
+    use_f_disturbance: False
+    use_angle_reward: True
+
+render:
+  use_gif: False
+
+load_results: False
+result_file_name: 0217-01:34
+
+disturbances:
+  disturbances:
+    - name: "world_friction_change"
+      start_at: 200
+      end_at: 400
+      disturbance_args:
+        friction: 0.1
+    # - name: "world_friction_change"
+    #   start_at: 350
+    #   end_at: 500
+    #   disturbance_args:
+    #     friction: 0.1
+
+hydra:
+  searchpath:
+    - file://src/configs/tests

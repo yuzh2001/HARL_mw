@@ -1,0 +1,60 @@
+defaults: 
+  - default
+  - render: gif_and_movie
+  - disturbances: only_world_friction
+  - _self_
+
+run_name: 0310-num5
+
+seed: 0
+first_baseline: False
+eval_episodes: 100
+
+show_reward_curve: False
+
+checkpoint_path:
+  # - path: 20250304-195711_angle_mass_obs_best.zip
+  #   desc: 在扰动环境；有对 weight 的观察
+  #   use_f_obs: False
+  #   use_angle_reward: True
+  #   use_package_mass_obs: True
+  - path: angle_base_num_5.zip
+    desc: 5个agent
+    use_f_obs: False
+    use_angle_reward: True
+    use_package_mass_obs: False
+  # - path: 20250304-174107_angle_mass_best.zip
+  #   desc: 在扰动环境；没有对 weight 的观察
+  #   use_f_obs: False
+  #   use_angle_reward: True
+  #   use_package_mass_obs: False
+  # - path: 20250219-191802_angle_base(angle_base_20250219-171250).zip
+  #   desc: 在普通环境(新)；有 angle-reward
+  #   use_f_obs: False
+  #   use_angle_reward: True
+  # - path: 20250215-024717_256net500bslr2e-4(256net500bslr2e-4_20250215-003756).zip
+  #   desc: 普通环境好check；没有 angle-reward（120reward 版本，比较激进）
+  #   use_f_obs: False
+  #   use_angle_reward: True
+  # - path: 20250218-172025_256net500bslr2e-4(256net500bslr2e-4_20250218-122355).zip
+  #   desc: 普通环境好check；没有 angle-reward（60reward 版本；比较保守）
+  #   use_f_obs: False
+  #   use_angle_reward: True
+
+render:
+  use_gif: False
+
+load_results: False
+result_file_name: 0301-16:03
+
+disturbances:
+  disturbances:
+  - name: "weight_change"
+    start_at: 200
+    end_at: 400
+    disturbance_args:
+      mass: 1
+
+hydra:
+  searchpath:
+    - file://src/configs/tests

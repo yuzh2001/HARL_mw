@@ -1,0 +1,10 @@
+task:
+  name: "only_weight_change"
+  description: "只修改重量。"
+  seed: 42
+disturbances:
+  - name: "weight_change"
+    start_at: 300
+    end_at: 1500
+    disturbance_args:
+      mass: 10

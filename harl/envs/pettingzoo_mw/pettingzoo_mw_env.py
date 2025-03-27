@@ -1,11 +1,13 @@
 import copy
 import logging
 import supersuit as ss
+
 # from pettingzoo.sisl import multiwalker_v9
-from .walker.multiwalker.multiwalker import parallel_env as multiwalker_stable_parallel_env
+from .walker.multiwalker.multiwalker import env_with_raw
+from pettingzoo.utils.conversions import aec_to_parallel_wrapper
 
 logging.basicConfig()
-logging.getLogger().setLevel(logging.ERROR)
+logging.getLogger().setLevel(logging.DEBUG)
 
 
 class PettingZooMWEnv:
@@ -20,16 +22,20 @@ class PettingZooMWEnv:
             self.args["max_cycles"] = 501
         self.cur_step = 0
         # self.module = multiwalker_v9
-        self.base_env = multiwalker_stable_parallel_env(**self.args)
+        self.base_env, self.raw_env = env_with_raw(**self.args)
         self.env = ss.pad_action_space_v0(
-            ss.pad_observations_v0(self.base_env)
+            ss.pad_observations_v0(aec_to_parallel_wrapper(self.base_env))
         )
         self.env.reset()
         self.n_agents = self.env.num_agents
         self.agents = self.env.agents
         self.share_observation_space = self.repeat(self.env.state_space)
-        self.observation_space = self.unwrap({agent: self.env.observation_space(agent) for agent in self.agents})
-        self.action_space = self.unwrap({agent: self.env.action_space(agent) for agent in self.agents})
+        self.observation_space = self.unwrap(
+            {agent: self.env.observation_space(agent) for agent in self.agents}
+        )
+        self.action_space = self.unwrap(
+            {agent: self.env.action_space(agent) for agent in self.agents}
+        )
         self._seed = 0
 
     def step(self, actions):
@@ -38,6 +44,11 @@ class PettingZooMWEnv:
         """
         obs, rew, term, trunc, info = self.env.step(self.wrap(actions))
         self.cur_step += 1
+
+        for agent in self.agents:
+            info[agent]["package_angle"] = self.raw_env.env.package.angle / 3.14 * 180
+            info[agent]["curr_step"] = self.cur_step
+            info[agent]["package_x"] = self.raw_env.env.package.position[0]
         if self.cur_step == self.max_cycles:
             trunc = {agent: True for agent in self.agents}
             for agent in self.agents:

@@ -1,0 +1,17 @@
+defaults: 
+  - _self_
+
+run_name: 缺省
+
+checkpoint_path:
+  - ./new_40m_base.zip
+
+eval_episodes: 10
+first_baseline: True
+
+load_results: False
+result_file_name: latest
+
+show_reward_curve: False
+
+checkpoints_comparison: False

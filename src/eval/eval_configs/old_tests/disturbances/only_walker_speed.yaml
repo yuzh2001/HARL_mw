@@ -1,0 +1,11 @@
+task:
+  name: "only_walker_speed"
+  description: "只修改马达速度。"
+  seed: 42
+disturbances:
+  - name: "walker_motor_speed_change"
+    start_at: 300
+    end_at: 1500
+    disturbance_args:
+      speed_factor_hip: 2
+      speed_factor_knee: 3

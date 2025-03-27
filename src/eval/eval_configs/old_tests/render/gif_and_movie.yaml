@@ -1,0 +1,4 @@
+use_gif: True
+use_movie: True
+
+gif_save_path: ./videos/

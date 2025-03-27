@@ -1,0 +1,4 @@
+defaults:
+  - setting: 250327_mappo&happo
+  - _self_
+
