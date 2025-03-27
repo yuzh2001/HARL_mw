@@ -1,0 +1,1 @@
+uv run src/train.py --multirun algorithm=mappo,happo,maddpg,matd3,maddpg_share,matd3_share,hasac,hatrpo environment=raw,angle,disturb_friction_no_obs,disturb_friction_obs,disturb_motor_no_obs,disturb_motor_obs,disturb_package_mass_no_obs,disturb_package_mass_obs

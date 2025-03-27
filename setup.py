@@ -7,7 +7,6 @@ setup(
     description="PyTorch implementation of HARL Algorithms",
     url="https://github.com/PKU-MARL/HARL",
     packages=find_packages(),
-    license="MIT",
     python_requires=">=3.8",
     install_requires=[
         "torch>=1.9.0",
