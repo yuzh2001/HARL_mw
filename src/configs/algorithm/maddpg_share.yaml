@@ -8,3 +8,5 @@ train:
   eval_interval: 5000
 
 name: maddpg
+algo:
+  share_param: True

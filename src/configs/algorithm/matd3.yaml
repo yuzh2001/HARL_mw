@@ -5,4 +5,5 @@ defaults:
 train:
   # number of parallel environments for training data collection
   n_rollout_threads: 20
+  eval_interval: 5000
 name: matd3
