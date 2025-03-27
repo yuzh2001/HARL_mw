@@ -43,6 +43,8 @@ def _to_dict(cfg1: DictConfig):
 
 
 def log_wandb():
+    print("logging to wandb")
+    rich.print(wandb_results)
     angle_intervals = [
         (0, 1),
         (1, 2),
@@ -53,7 +55,7 @@ def log_wandb():
         (10, 15),
         (15, float("inf")),
     ]
-    columns = ["algo", "variant", "scenario", "terminate_cnt"]
+    columns = ["algo", "variant", "scenario", "terminate_cnt", "package_final_x"]
     columns.extend([f"angle-{start}-{end}" for start, end in angle_intervals])
     # 将字典数据转换为列表格式
     table_data = []
@@ -64,6 +66,7 @@ def log_wandb():
                 result["variant"],
                 result["scenario"],
                 result["terminate_cnt"],
+                result["package_x"],
                 *[
                     result["angle_data"].get(f"angle-{start}-{end}", 0)
                     for start, end in angle_intervals
@@ -71,6 +74,7 @@ def log_wandb():
             ]
         )
 
+    rich.print(table_data)
     test_table = wandb.Table(data=table_data, columns=columns)
     wandb.log({"test_table": test_table})
 
@@ -200,7 +204,7 @@ def eval(
         algo_args.train.model_dir = checkpoint_path  # 读取模型！
 
         # 配置eval遍数
-        algo_args.eval.n_eval_rollout_threads = 500
+        algo_args.eval.n_eval_rollout_threads = globalConfig.run.eval_threads
         algo_args.eval.eval_episodes = globalConfig.run.eval_episodes
 
         if (
@@ -217,7 +221,7 @@ def eval(
         env_dict = _to_dict(env_args)
         del env_dict["name"]
         del env_dict["scenario"]
-
+        env_dict["custom"]["eval_disturb"] = _to_dict(eval_scenario)["disturbances"]
         runner = RUNNER_REGISTRY[algorithm_name](basic_info, algo_dict, env_dict)
 
         # runner.run()
@@ -232,9 +236,12 @@ def eval(
         # 2.1 计算提前摔倒的次数
         terminate_cnt = 0
         terminate_arr = logger.test_data["terminate_at"]
+        package_x = []
         for i in range(len(terminate_arr)):
             if terminate_arr[i] + 2 < max_cycles:  # +2 去除一点边际问题
                 terminate_cnt += 1
+            if terminate_arr[i] + 2 >= max_cycles:
+                package_x.append(logger.test_data["package_x"][i])
 
         end_time = time.time()
         print(
@@ -247,6 +254,7 @@ def eval(
             "scenario": eval_scenario.name,
             "terminate_cnt": terminate_cnt,
             "angle_data": logger.test_data["angle_data"],
+            "package_x": sum(package_x) / len(package_x),
         }
 
 
@@ -266,14 +274,14 @@ def load_eval_results(filepath: str) -> dict:
     with open(filepath, "r") as f:
         data = json.load(f)
 
-    # 保存副本到hydra输出目录
-    output_dir = os.path.join(
-        hydra.core.hydra_config.HydraConfig.get().runtime.output_dir, "data_used"
-    )
-    os.makedirs(output_dir, exist_ok=True)
-    backup_path = os.path.join(output_dir, os.path.basename(filepath))
-    with open(backup_path, "w") as f:
-        json.dump(data, f)
+    # # 保存副本到hydra输出目录
+    # output_dir = os.path.join(
+    #     hydra.core.hydra_config.HydraConfig.get().runtime.output_dir, "data_used"
+    # )
+    # os.makedirs(output_dir, exist_ok=True)
+    # backup_path = os.path.join(output_dir, os.path.basename(filepath))
+    # with open(backup_path, "w") as f:
+    #     json.dump(data, f)
 
     return data
 
@@ -283,7 +291,6 @@ def analyze_eval_results(
     config: hydra_type.EvalConfig,
     checkpoint: hydra_type.CheckpointConfig,
 ):
-    wandb_results = []
     for res in results:
         angle_intervals = [
             (0, 1),
@@ -306,10 +313,13 @@ def analyze_eval_results(
             "variant": res["variant"],
             "scenario": res["scenario"],
             "terminate_cnt": res["terminate_cnt"],
+            "package_x": res["package_x"],
             "angle_data": baseline_interval_counts,
         }
 
         wandb_results.append(wandb_item)
+
+    rich.print(wandb_results)
 
 
 @hydra.main(
@@ -372,6 +382,7 @@ def main(cfg: hydra_type.SettingConfig):
 
         # 分析结果并获取图表
         wandb_results = []
+        rich.print(wandb_results)
         analyze_eval_results(results, cfg.setting, checkpoint)
         log_wandb()
 

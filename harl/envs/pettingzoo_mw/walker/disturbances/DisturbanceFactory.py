@@ -1,7 +1,13 @@
-from disturbances import DisturbanceBase, MultiWalkerEnv
-from disturbances.package import DisturbancePackageWeightChange
-from disturbances.walker import DisturbanceWalkerMotorSpeedChange
-from disturbances.world import DisturbanceWorldFrictionChange
+from harl.envs.pettingzoo_mw.walker.disturbances import DisturbanceBase, MultiWalkerEnv
+from harl.envs.pettingzoo_mw.walker.disturbances.package import (
+    DisturbancePackageWeightChange,
+)
+from harl.envs.pettingzoo_mw.walker.disturbances.walker import (
+    DisturbanceWalkerMotorSpeedChange,
+)
+from harl.envs.pettingzoo_mw.walker.disturbances.world import (
+    DisturbanceWorldFrictionChange,
+)
 
 disturbance_dict = {
     "weight_change": DisturbancePackageWeightChange,

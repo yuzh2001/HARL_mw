@@ -10,7 +10,7 @@ class PettingZooMWLogger(BaseLogger):
         )
         self.episode = 1
         self.is_testing = False
-        self.test_data = {"terminate_at": [], "angle_data": []}
+        self.test_data = {"terminate_at": [], "angle_data": [], "package_x": []}
 
     def get_task_name(self):
         return "mw_pettingzoo"
@@ -37,6 +37,7 @@ class PettingZooMWLogger(BaseLogger):
             for i in range(len(eval_infos)):
                 if eval_dones[i][0]:
                     self.test_data["terminate_at"].append(eval_infos[i][0]["curr_step"])
+                    self.test_data["package_x"].append(eval_infos[i][0]["package_x"])
             for eval_i in range(self.algo_args["eval"]["n_eval_rollout_threads"]):
                 self.one_episode_rewards[eval_i].append(eval_rewards[eval_i])
             self.eval_infos = eval_infos

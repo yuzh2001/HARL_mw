@@ -1,11 +1,11 @@
-from disturbances.world import DisturbanceWorldBase
+from harl.envs.pettingzoo_mw.walker.disturbances.world import DisturbanceWorldBase
 
 
-class DisturbanceWorldWind(DisturbanceWorldBase):
+class DisturbanceWorldFrictionChange(DisturbanceWorldBase):
     """
-    引入风？
+    对世界摩擦力做扰动的类。
 
-    disturbance_args: dict = {"mass": 4.57}
+    disturbance_args: dict = {"friction": 4.57}
     """
 
     def start(self):

@@ -1,4 +1,4 @@
-from disturbances.package import DisturbancePackageBase
+from harl.envs.pettingzoo_mw.walker.disturbances.package import DisturbancePackageBase
 
 
 class DisturbancePackageWeightChange(DisturbancePackageBase):

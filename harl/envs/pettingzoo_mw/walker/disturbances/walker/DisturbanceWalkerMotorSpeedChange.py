@@ -1,4 +1,4 @@
-from disturbances.walker import DisturbanceWalkerBase
+from harl.envs.pettingzoo_mw.walker.disturbances.walker import DisturbanceWalkerBase
 
 
 class DisturbanceWalkerMotorSpeedChange(DisturbanceWalkerBase):

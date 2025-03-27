@@ -132,6 +132,7 @@ from .mw_obs_fric import MultiWalkerEnv as _env_fric
 from .mw_obs_fric_stable import MultiWalkerEnv as _env_fric_stable
 from .mw_obs_motor_stable import MultiWalkerEnv as _env_motor
 from .mw_obs_package_mass_stable import MultiWalkerEnv as _env_package_mass
+from ..disturbances import DisturbanceFactory
 
 
 class raw_env(AECEnv, EzPickle):
@@ -193,6 +194,18 @@ class raw_env(AECEnv, EzPickle):
             else:
                 self.env = _env(*args, **kwargs)
 
+        self.turbances_array = []
+        self.eval_disturbs = custom_parameters.get("eval_disturb", [])
+        if self.eval_disturbs is None:
+            self.eval_disturbs = []
+        if len(self.eval_disturbs) > 0:
+            turbances_array = []
+            for disturbance in self.eval_disturbs:
+                turbances_array.append(
+                    DisturbanceFactory(self.get_raw_env(), **disturbance)
+                )
+            self.turbances_array = turbances_array
+
         self.render_mode = self.env.render_mode
         self.agents = ["walker_" + str(r) for r in range(self.env.n_walkers)]
         self.possible_agents = self.agents[:]
@@ -247,7 +260,7 @@ class raw_env(AECEnv, EzPickle):
         self.disturbance["start_at"] = 0
         self.disturbance["end_at"] = 0
         self.disturbance["disturbance_args"] = {}
-        self.turbances_array = None
+        # self.turbances_array = None
 
     def close(self):
         self.env.close()

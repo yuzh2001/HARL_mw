@@ -1,9 +1,9 @@
-from disturbances import DisturbanceBase, MultiWalkerEnv
+from harl.envs.pettingzoo_mw.walker.disturbances import DisturbanceBase, MultiWalkerEnv
 
 
-class DisturbancePackageBase(DisturbanceBase):
+class DisturbanceWorldBase(DisturbanceBase):
     """
-    对包裹做扰动的基类。
+    对世界做扰动的基类。
 
     提供colorize和un_colorize方法，在被扰动时，包裹会变色。
     """
@@ -14,12 +14,15 @@ class DisturbancePackageBase(DisturbanceBase):
         self.color2 = (255, 0, 0)
 
     def colorize(self, color1: tuple = (255, 0, 0), color2: tuple = (255, 0, 0)):
-        self.env.package.color1 = color1
-        self.env.package.color2 = color2
+        for ter in self.env.terrain:
+            ter.color1 = color1
+            ter.color2 = color2
 
     def un_colorize(self):
-        self.env.package.color1 = (127, 102, 229)
-        self.env.package.color2 = (76, 76, 127)
+        for index, ter in enumerate(self.env.terrain):
+            color = (76, 255 if index % 2 == 0 else 204, 76)
+            ter.color1 = color
+            ter.color2 = color
 
     def start(self):
         self.colorize()

@@ -8,6 +8,7 @@ class RunConfig:
     run_name: str
     seed: int = 0
     eval_episodes: int = 100
+    eval_threads: int = 50
     use_custom_disturbance: bool = False
     load_results: bool = False
 

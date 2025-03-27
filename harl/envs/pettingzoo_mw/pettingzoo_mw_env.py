@@ -48,6 +48,7 @@ class PettingZooMWEnv:
         for agent in self.agents:
             info[agent]["package_angle"] = self.raw_env.env.package.angle / 3.14 * 180
             info[agent]["curr_step"] = self.cur_step
+            info[agent]["package_x"] = self.raw_env.env.package.position[0]
         if self.cur_step == self.max_cycles:
             trunc = {agent: True for agent in self.agents}
             for agent in self.agents:

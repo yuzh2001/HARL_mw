@@ -17,12 +17,16 @@ from rich.progress import track
 from stable_baselines3 import PPO
 
 import wandb
-from disturbances import DisturbanceFactory, MultiWalkerEnv
+from harl.envs.pettingzoo_mw.walker.disturbances import (
+    DisturbanceFactory,
+    MultiWalkerEnv,
+)
 from utils.gif import export_gif
 from walker import multiwalker_v9
 
 
 from rich.progress import Progress
+
 os.environ["SDL_VIDEODRIVER"] = "dummy"
 
 # 设置字体路径
@@ -66,11 +70,12 @@ def eval(
         use_f_disturbance = False
         use_motor_disturbance = False
         use_package_mass_disturbance = False
-        
+
     # 用于存储所有进程的结果
     from joblib import Parallel, delayed
 
     rewards_out = [0, 0, 0]
+
     def run_episode(episode_idx: int):
         # 每个进程创建独立环境
         env, raw_env = multiwalker_v9.env_with_raw(
@@ -612,8 +617,11 @@ def main(cfg: DictConfig):
                     "steps": disturb_final_steps,
                 }
             )
+
     with Progress() as progress:
-        task0 = progress.add_task("[green]Checkpoint evaluating...", total=len(cfg.checkpoint_path))
+        task0 = progress.add_task(
+            "[green]Checkpoint evaluating...", total=len(cfg.checkpoint_path)
+        )
         # 顺序处理每个checkpoint
         for checkpoint_path in cfg.checkpoint_path:
             start_time = time.time()

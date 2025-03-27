@@ -1,4 +1,4 @@
-from disturbances import DisturbanceBase, MultiWalkerEnv
+from harl.envs.pettingzoo_mw.walker.disturbances import DisturbanceBase, MultiWalkerEnv
 
 
 class DisturbanceWalkerBase(DisturbanceBase):
