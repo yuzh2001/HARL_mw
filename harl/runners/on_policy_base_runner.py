@@ -37,6 +37,8 @@ class OnPolicyBaseRunner:
         self.algo_args = algo_args
         self.env_args = env_args
 
+        self.best_eval = None
+
         self.hidden_sizes = algo_args["model"]["hidden_sizes"]
         self.rnn_hidden_size = self.hidden_sizes[-1]
         self.recurrent_n = algo_args["model"]["recurrent_n"]
@@ -266,14 +268,11 @@ class OnPolicyBaseRunner:
                         self.best_eval = -10000
                     eval_result = np.mean(
                         np.concatenate(
-                            [
-                                rewards
-                                for rewards in self.logger.eval_episode_rewards
-                                if rewards
-                            ]
+                            [rewards for rewards in self.logger.eval_episode_rewards]
                         )
                     )
                     if eval_result > self.best_eval:
+                        print("New Best Reward! Saving...")
                         self.save()
                         self.best_eval = eval_result
                 else:

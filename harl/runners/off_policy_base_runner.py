@@ -36,6 +36,7 @@ class OffPolicyBaseRunner:
         self.args = args
         self.algo_args = algo_args
         self.env_args = env_args
+        self.best_eval = None
 
         if "policy_freq" in self.algo_args["algo"]:
             self.policy_freq = self.algo_args["algo"]["policy_freq"]
@@ -291,11 +292,7 @@ class OffPolicyBaseRunner:
                         self.best_eval = -10000
                     eval_result = np.mean(
                         np.concatenate(
-                            [
-                                rewards
-                                for rewards in self.logger.eval_episode_rewards
-                                if rewards
-                            ]
+                            [rewards for rewards in self.logger.eval_episode_rewards]
                         )
                     )
                     if eval_result > self.best_eval:
@@ -317,7 +314,7 @@ class OffPolicyBaseRunner:
                         )
                         self.log_file.flush()
                         self.done_episodes_rewards = []
-                self.save()
+                    self.save()
 
     def warmup(self):
         """Warmup the replay buffer with random actions"""

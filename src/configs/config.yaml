@@ -8,6 +8,11 @@ defaults:
   - override hydra/launcher: submitit_local
   - _self_
 name: hi
+
+algorithm:
+  device:
+    cuda: False
+    cuda_deterministic: False
 hydra:
   searchpath:
     - file://src/configs/
