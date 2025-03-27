@@ -43,19 +43,31 @@ def _to_dict(cfg1: DictConfig):
 
 
 def log_wandb():
-    columns = ["desc", "env", "reward", "angle", "angle_deg", "steps", "terminate_cnt"]
+    angle_intervals = [
+        (0, 1),
+        (1, 2),
+        (2, 3),
+        (3, 5),
+        (5, 8),
+        (8, 10),
+        (10, 15),
+        (15, float("inf")),
+    ]
+    columns = ["algo", "variant", "scenario", "terminate_cnt"]
+    columns.extend([f"angle-{start}-{end}" for start, end in angle_intervals])
     # 将字典数据转换为列表格式
     table_data = []
     for result in wandb_results:
         table_data.append(
             [
-                result["desc"],
-                result["env"],
-                result["reward"],
-                result["angle"],
-                result["angle_deg"],
-                result["steps"],
+                result["algo"],
+                result["variant"],
+                result["scenario"],
                 result["terminate_cnt"],
+                *[
+                    result["angle_data"].get(f"angle-{start}-{end}", 0)
+                    for start, end in angle_intervals
+                ],
             ]
         )
 
@@ -188,7 +200,7 @@ def eval(
         algo_args.train.model_dir = checkpoint_path  # 读取模型！
 
         # 配置eval遍数
-        algo_args.eval.n_eval_rollout_threads = 100
+        algo_args.eval.n_eval_rollout_threads = 500
         algo_args.eval.eval_episodes = globalConfig.run.eval_episodes
 
         if (
@@ -221,7 +233,7 @@ def eval(
         terminate_cnt = 0
         terminate_arr = logger.test_data["terminate_at"]
         for i in range(len(terminate_arr)):
-            if terminate_arr[i] < max_cycles:
+            if terminate_arr[i] + 2 < max_cycles:  # +2 去除一点边际问题
                 terminate_cnt += 1
 
         end_time = time.time()
@@ -230,9 +242,74 @@ def eval(
         )
         return {
             "desc": f"[{checkpoint.algo}]<{checkpoint_type}>_{eval_scenario.name}",
+            "algo": checkpoint.algo,
+            "variant": checkpoint_type,
+            "scenario": eval_scenario.name,
             "terminate_cnt": terminate_cnt,
             "angle_data": logger.test_data["angle_data"],
         }
+
+
+def save_eval_results(results: dict, output_dir: str, name: str) -> str:
+    """保存评估结果到JSON文件"""
+    os.makedirs(output_dir, exist_ok=True)
+    filename = f"{name}.json"
+    filepath = os.path.join(output_dir, filename)
+
+    with open(filepath, "w") as f:
+        json.dump(results, f)
+    return filepath
+
+
+def load_eval_results(filepath: str) -> dict:
+    """从JSON文件加载评估结果,并保存副本到hydra输出目录"""
+    with open(filepath, "r") as f:
+        data = json.load(f)
+
+    # 保存副本到hydra输出目录
+    output_dir = os.path.join(
+        hydra.core.hydra_config.HydraConfig.get().runtime.output_dir, "data_used"
+    )
+    os.makedirs(output_dir, exist_ok=True)
+    backup_path = os.path.join(output_dir, os.path.basename(filepath))
+    with open(backup_path, "w") as f:
+        json.dump(data, f)
+
+    return data
+
+
+def analyze_eval_results(
+    results,
+    config: hydra_type.EvalConfig,
+    checkpoint: hydra_type.CheckpointConfig,
+):
+    wandb_results = []
+    for res in results:
+        angle_intervals = [
+            (0, 1),
+            (1, 2),
+            (2, 3),
+            (3, 5),
+            (5, 8),
+            (8, 10),
+            (10, 15),
+            (15, float("inf")),
+        ]
+        baseline_interval_counts = {
+            f"angle-{start}-{end}": sum(
+                1 for a in res["angle_data"] if start <= abs(a) < end
+            )
+            for start, end in angle_intervals
+        }
+        wandb_item = {
+            "algo": res["algo"],
+            "variant": res["variant"],
+            "scenario": res["scenario"],
+            "terminate_cnt": res["terminate_cnt"],
+            "angle_data": baseline_interval_counts,
+        }
+
+        wandb_results.append(wandb_item)
 
 
 @hydra.main(
@@ -260,27 +337,21 @@ def main(cfg: hydra_type.SettingConfig):
         if should_load_results:
             # 加载已有结果模式
             result_file_name = cfg.setting.run.result_file_name
-            # if result_file_name == "latest":
-            #     # 从latest子目录加载latest版本
-            #     latest_dir = os.path.join(json_dir, "latest")
-            #     baseline_results = load_eval_results(
-            #         os.path.join(latest_dir, f"{checkpoint.desc}_baseline.json")
-            #     )
-            #     disturb_results = load_eval_results(
-            #         os.path.join(latest_dir, f"{checkpoint.desc}_disturb.json")
-            #     )
-            # else:
-            #     # 从时间戳子目录加载指定版本
-            #     timestamp_dir = os.path.join(json_dir, result_file_name)
-            #     baseline_results = load_eval_results(
-            #         os.path.join(timestamp_dir, f"{checkpoint.desc}_baseline.json")
-            #     )
-            #     disturb_results = load_eval_results(
-            #         os.path.join(timestamp_dir, f"{checkpoint.desc}_disturb.json")
-            #     )
+            if result_file_name == "latest":
+                # 从latest子目录加载latest版本
+                latest_dir = os.path.join(json_dir, "latest")
+                results = load_eval_results(
+                    os.path.join(latest_dir, f"{checkpoint.algo}.json")
+                )
+            else:
+                # 从时间戳子目录加载指定版本
+                timestamp_dir = os.path.join(json_dir, result_file_name)
+                results = load_eval_results(
+                    os.path.join(timestamp_dir, f"{checkpoint.algo}.json")
+                )
         else:
             # 执行评估模式
-            run_evaluations(cfg.setting, checkpoint)
+            results = run_evaluations(cfg.setting, checkpoint)
 
             # 创建时间戳子目录
             timestamp_dir = os.path.join(json_dir, timestamp)
@@ -290,24 +361,19 @@ def main(cfg: hydra_type.SettingConfig):
             latest_dir = os.path.join(json_dir, "latest")
             os.makedirs(latest_dir, exist_ok=True)
 
-        #     # 保存结果到时间戳子目录
-        #     save_eval_results(
-        #         baseline_results,
-        #         timestamp_dir,
-        #         f"{checkpoint.desc}_baseline",
-        #     )
-        #     save_eval_results(
-        #         disturb_results, timestamp_dir, f"{checkpoint.desc}_disturb"
-        #     )
+            # 保存结果到时间戳子目录
+            save_eval_results(
+                results,
+                timestamp_dir,
+                f"{checkpoint.algo}",
+            )
 
-        #     # 同时保存latest版本到latest子目录
-        #     save_eval_results(
-        #         baseline_results, latest_dir, f"{checkpoint.desc}_baseline"
-        #     )
-        #     save_eval_results(disturb_results, latest_dir, f"{checkpoint.desc}_disturb")
+            save_eval_results(results, latest_dir, f"{checkpoint.algo}")
 
-        # # 分析结果并获取图表
-        # analyze_eval_results(baseline_results, disturb_results, cfg, checkpoint)
+        # 分析结果并获取图表
+        wandb_results = []
+        analyze_eval_results(results, cfg.setting, checkpoint)
+        log_wandb()
 
     for checkpoint in cfg.setting.checkpoints:
         start_time = time.time()
@@ -316,9 +382,8 @@ def main(cfg: hydra_type.SettingConfig):
         print(f"{checkpoint.algo} 耗时: {end_time - start_time:.2f}秒")
 
     # 发送完成通知
-    # requests.get("https://api.day.app/Ya5CADvAuDWf5NR4E8ZGt5/Eval完成")
+    requests.get("https://api.day.app/Ya5CADvAuDWf5NR4E8ZGt5/Eval完成")
 
-    log_wandb()
     run.finish()
 
 
