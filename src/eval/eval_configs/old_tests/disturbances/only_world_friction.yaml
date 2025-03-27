@@ -1,0 +1,10 @@
+task:
+  name: "only_world_friction"
+  description: "只修改世界摩擦力。"
+  seed: 1
+disturbances:
+  - name: "world_friction_change"
+    start_at: 50
+    end_at: 900
+    disturbance_args:
+      friction: 0.1

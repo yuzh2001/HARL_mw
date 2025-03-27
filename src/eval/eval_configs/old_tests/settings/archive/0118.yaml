@@ -1,0 +1,28 @@
+defaults: 
+  - render: gif_and_movie
+  - disturbances: only_world_friction
+  - _self_
+
+run_name: 0117-obs
+
+checkpoint_path:
+  - ./multiwalker_v9_20250117-194826.zip
+  - ./multiwalker_v9_20250117-194908.zip
+  # - ./semantic/0114-obs-f-env.zip
+  - ./new_40m_base.zip
+  # - ./semantic/original.zip
+
+render:
+  use_gif: True
+
+disturbances:
+  disturbances:
+    - name: "world_friction_change"
+      start_at: 200
+      end_at: 400
+      disturbance_args:
+        friction: 0.1
+
+hydra:
+  searchpath:
+    - file://src/configs/tests

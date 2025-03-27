@@ -1,4 +1,5 @@
 """Base runner for off-policy algorithms."""
+
 import os
 import time
 import torch
@@ -100,9 +101,9 @@ class OffPolicyBaseRunner:
         for agent_id in range(self.num_agents):
             self.action_spaces[agent_id].seed(algo_args["seed"]["seed"] + agent_id + 1)
 
-        print("share_observation_space: ", self.envs.share_observation_space)
-        print("observation_space: ", self.envs.observation_space)
-        print("action_space: ", self.envs.action_space)
+        # print("share_observation_space: ", self.envs.share_observation_space)
+        # print("observation_space: ", self.envs.observation_space)
+        # print("action_space: ", self.envs.action_space)
 
         if self.share_param:
             self.actor = []
@@ -381,7 +382,7 @@ class OffPolicyBaseRunner:
                 if dones_env[i]:
                     if not (
                         "bad_transition" in infos[i][0].keys()
-                        and infos[i][0]["bad_transition"] == True # noqa: E712
+                        and infos[i][0]["bad_transition"] == True  # noqa: E712
                     ):
                         terms[i][0] = True
         elif self.state_type == "FP":
@@ -394,7 +395,7 @@ class OffPolicyBaseRunner:
                     if dones[i][agent_id]:
                         if not (
                             "bad_transition" in infos[i][agent_id].keys()
-                            and infos[i][agent_id]["bad_transition"] == True # noqa: E712
+                            and infos[i][agent_id]["bad_transition"] == True  # noqa: E712
                         ):
                             terms[i][agent_id][0] = True
 

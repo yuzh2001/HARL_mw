@@ -1,0 +1,60 @@
+defaults: 
+  - render: gif_and_movie
+  - disturbances: only_world_friction
+  - _self_
+
+eval_episodes: 10
+run_name: 0213-以angle为关注，加入f
+
+checkpoint_path:
+  - path: angle_basefac50-fobs_angle_basefac50-fobs_20250213-091034_20250213-124809.zip
+    use_f_obs: True
+    use_f_disturbance: False
+    use_angle_reward: True
+  - path: angle_f_angle_f_20250213-142914_20250213-163244.zip
+    use_f_obs: False
+    use_f_disturbance: False
+    use_angle_reward: True
+  - path: angle_basefac50_angle_basefac50_20250212-233111_20250213-051312.zip
+    use_f_obs: False
+    use_f_disturbance: False
+    use_angle_reward: True
+  # - path: ./new_baseline.zip
+  #   use_f_obs: False
+  #   use_f_disturbance: False
+  #   use_angle_reward: False
+  # - path: ./angle_base_angle_base_20250212-233001_20250213-051133.zip
+  #   use_f_obs: False
+  #   use_f_disturbance: False
+  #   use_angle_reward: True
+  # - path: ./angle_basefac50_angle_basefac50_20250212-233111_20250213-051312.zip
+  #   use_f_obs: False
+  #   use_f_disturbance: False
+  #   use_angle_reward: True
+  # - path: ./angle_base_all_angle_50_angle_base_all_angle_50_20250212-233329_20250213-051532.zip
+  #   use_f_obs: False
+  #   use_f_disturbance: False
+  #   use_angle_reward: True
+  # - path: ./angle_base_all_angle_angle_base_all_angle_20250212-233244_20250213-051651.zip
+  #   use_f_obs: False
+  #   use_f_disturbance: False
+  #   use_angle_reward: True
+  # - path: ./angle_f_obs.zip
+  #   use_f_obs: True
+  #   use_f_disturbance: True
+  #   use_angle_reward: True
+
+render:
+  use_gif: False
+
+disturbances:
+  disturbances:
+    - name: "world_friction_change"
+      start_at: 399
+      end_at: 400
+      disturbance_args:
+        friction: 0.1
+
+hydra:
+  searchpath:
+    - file://src/configs/tests

@@ -1,0 +1,31 @@
+defaults:
+  - default
+  - _self_
+
+run:
+  run_name: 250327_mappo&happo
+  seed: 0
+  eval_episodes: 100
+
+  # 是否使用自定义的扰动，还是进行默认的eval
+  use_custom_disturbance: False
+
+  # 是否读取此前eval完的结果
+  load_results: False
+  result_file_name: 0217-01:34
+
+checkpoints:
+  - algo: mappo
+    timestamp: 0326-1829
+    desc: .
+  - algo: happo
+    timestamp: 0326-1829
+    desc: .
+  - algo: matd3
+    timestamp: 0326-1842
+    desc: .
+
+render:
+  use_gif: False
+  show_reward_curve: False
+

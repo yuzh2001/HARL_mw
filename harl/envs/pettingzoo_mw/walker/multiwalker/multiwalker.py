@@ -133,6 +133,7 @@ from .mw_obs_fric_stable import MultiWalkerEnv as _env_fric_stable
 from .mw_obs_motor_stable import MultiWalkerEnv as _env_motor
 from .mw_obs_package_mass_stable import MultiWalkerEnv as _env_package_mass
 
+
 class raw_env(AECEnv, EzPickle):
     metadata = {
         "render_modes": ["human", "rgb_array"],
@@ -147,36 +148,34 @@ class raw_env(AECEnv, EzPickle):
         custom_parameters = kwargs.get("custom", {"use_angle_reward": False})
         del kwargs["custom"]
 
-        self.disturbs = custom_parameters.get("disturbs", {
-            "friction": {
-                "disturb_enabled": False,
-                "obs_enabled": False,
+        self.disturbs = custom_parameters.get(
+            "disturbs",
+            {
+                "friction": {
+                    "disturb_enabled": False,
+                    "obs_enabled": False,
+                },
+                "motor": {
+                    "disturb_enabled": False,
+                    "obs_enabled": False,
+                },
+                "package_mass": {
+                    "disturb_enabled": False,
+                    "obs_enabled": False,
+                },
             },
-            "motor": {
-                "disturb_enabled": False,
-                "obs_enabled": False,
-            },
-            "package_mass": {
-                "disturb_enabled": False,
-                "obs_enabled": False,
-            },
-        })
+        )
 
         self.use_angle_reward = custom_parameters.get("use_angle_reward", False)
 
         assert (
-            sum(
-            [
-                self.disturbs[k]["disturb_enabled"]
-                for k in self.disturbs.keys()
-            ]
-            )
+            sum([self.disturbs[k]["disturb_enabled"] for k in self.disturbs.keys()])
             <= 1
         ), "目前只支持同时启用一个扰动"
         assert (
-            "friction" in self.disturbs and
-            "motor" in self.disturbs and
-            "package_mass" in self.disturbs
+            "friction" in self.disturbs
+            and "motor" in self.disturbs
+            and "package_mass" in self.disturbs
         ), "disturbs must contain 'friction', 'motor', and 'package_mass' keys"
 
         if self.disturbs["friction"]["obs_enabled"]:
@@ -368,7 +367,7 @@ def env_with_raw(**kwargs):
 
 
 def env(**kwargs):
-    print("kwargs: ", kwargs)
+    # print("kwargs: ", kwargs)
     env1 = raw_env(**kwargs)
     env = wrappers.ClipOutOfBoundsWrapper(env1)
     env = wrappers.OrderEnforcingWrapper(env)

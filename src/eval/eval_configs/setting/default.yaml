@@ -1,0 +1,41 @@
+run:
+  run_name: fallback
+  seed: 0
+  eval_episodes: 100
+  load_results: False
+  result_file_name: ???
+
+checkpoints: ???
+
+render:
+  use_gif: False
+  show_reward_curve: False
+
+scenarios:
+  - name: raw
+    is_raw: True
+  - name: friction
+    is_raw: False
+    disturbances:
+      - name: "world_friction_change"
+        start_at: 200
+        end_at: 400
+        disturbance_args:
+          friction: 0.1
+  - name: motor
+    is_raw: False
+    disturbances:
+      - name: "walker_motor_speed_change"
+        start_at: 200
+        end_at: 400
+        disturbance_args:
+          speed_factor_hip: 20
+          speed_factor_knee: 20
+  - name: package_mass
+    is_raw: False
+    disturbances:
+      - name: "weight_change"
+        start_at: 200
+        end_at: 400
+        disturbance_args:
+          mass: 1

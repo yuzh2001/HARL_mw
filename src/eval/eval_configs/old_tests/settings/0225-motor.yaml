@@ -1,0 +1,70 @@
+defaults: 
+  - default
+  - render: gif_and_movie
+  - disturbances: only_world_friction
+  - _self_
+
+run_name: 0225-motor
+
+seed: 0
+first_baseline: False
+eval_episodes: 1000
+
+show_reward_curve: False
+
+checkpoint_path:
+  - path: 20250224-181227_angle_motor_obs(angle_motor_obs_20250224-162841).zip
+    desc: 在扰动环境；有对 motor 的观察
+    use_f_obs: False
+    use_motor_obs: True
+    use_f_disturbance: False
+    use_angle_reward: True
+    use_motor_disturbance: False
+  - path: angle_motor_obs.zip
+    desc: 在扰动环境；有对 motor 的观察2
+    use_f_obs: False
+    use_motor_obs: True
+    use_f_disturbance: False
+    use_angle_reward: True
+    use_motor_disturbance: False
+  - path: 20250224-162833_angle_motor(angle_motor_20250224-144517).zip
+    desc: 在扰动环境；没有对 motor 的观察
+    use_f_obs: False
+    use_motor_obs: False
+    use_f_disturbance: False
+    use_angle_reward: True
+    use_motor_disturbance: True
+  - path: 20250219-191802_angle_base(angle_base_20250219-171250).zip
+    desc: 在普通环境(新)；有 angle-reward
+    use_f_obs: False
+    use_f_disturbance: False
+    use_angle_reward: True
+  - path: 20250215-024717_256net500bslr2e-4(256net500bslr2e-4_20250215-003756).zip
+    desc: 普通环境好check；没有 angle-reward（120reward 版本，比较激进）
+    use_f_obs: False
+    use_f_disturbance: False
+    use_angle_reward: True
+  - path: 20250218-172025_256net500bslr2e-4(256net500bslr2e-4_20250218-122355).zip
+    desc: 普通环境好check；没有 angle-reward（60reward 版本；比较保守）
+    use_f_obs: False
+    use_f_disturbance: False
+    use_angle_reward: True
+
+render:
+  use_gif: False
+
+load_results: True
+result_file_name: 0226-09:38
+
+disturbances:
+  disturbances:
+  - name: "walker_motor_speed_change"
+    start_at: 200
+    end_at: 400
+    disturbance_args:
+      speed_factor_hip: 20
+      speed_factor_knee: 20
+
+hydra:
+  searchpath:
+    - file://src/configs/tests
