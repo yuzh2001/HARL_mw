@@ -21,6 +21,7 @@ import wandb
 # from walker import multiwalker_v9
 
 from harl.runners import RUNNER_REGISTRY
+from harl.envs.pettingzoo_mw.pettingzoo_mw_logger import PettingZooMWLogger
 import requests
 import hydra_type
 from hydra import initialize, compose
@@ -141,6 +142,7 @@ def eval(
     checkpoint_type: str,
     eval_scenario: hydra_type.ScenarioConfig,
 ):
+    start_time = time.time()
     base_checkpoint_path = f"./results/pettingzoo_mw/multiwalker/{checkpoint.algo}/[{checkpoint.algo}]<{checkpoint_type}>_{checkpoint.timestamp}"
     seed_folder = next(
         folder
@@ -163,7 +165,7 @@ def eval(
             config_name="config",
             overrides=[
                 f"algorithm={checkpoint.algo}",
-                f"environment={eval_scenario.name}",
+                f"environment={checkpoint_type}",
             ],
         )
         algo_args = cfg.algorithm
@@ -186,7 +188,7 @@ def eval(
         algo_args.train.model_dir = checkpoint_path  # 读取模型！
 
         # 配置eval遍数
-        algo_args.eval.n_eval_rollout_threads = 1
+        algo_args.eval.n_eval_rollout_threads = 100
         algo_args.eval.eval_episodes = globalConfig.run.eval_episodes
 
         if (
@@ -194,6 +196,8 @@ def eval(
             and algo_args.train.get("num_env_steps") is not None
         ):
             algo_args.train.num_env_steps = 1
+
+        env_args.max_cycles = max_cycles
 
         algo_dict = _to_dict(algo_args)
         del algo_dict["name"]
@@ -205,198 +209,30 @@ def eval(
         runner = RUNNER_REGISTRY[algorithm_name](basic_info, algo_dict, env_dict)
 
         # runner.run()
+
+        logger: PettingZooMWLogger = runner.logger
+        logger.is_testing = (
+            True  # 标识目前在eval；但是eval这个词被它用了，只能用test了。
+        )
         runner.eval()
 
-        exit()
+        # 开始计算
+        # 2.1 计算提前摔倒的次数
+        terminate_cnt = 0
+        terminate_arr = logger.test_data["terminate_at"]
+        for i in range(len(terminate_arr)):
+            if terminate_arr[i] < max_cycles:
+                terminate_cnt += 1
 
-
-# def old_eval(
-#     cfg: EvalConfig,
-#     config_name: str,
-#     disturbances: list[DisturbanceConfig],
-#     checkpoint: CheckpointPath,
-#     render_mode: str | None = "rgb_array",
-# ):
-#     gif_save_path = os.path.join(
-#         hydra.core.hydra_config.HydraConfig.get().runtime.output_dir, "./videos"
-#     )
-#     save_gif = cfg.render.use_gif
-#     # 读取模型
-#     model = PPO.load(os.path.join("./checkpoint_models", checkpoint.path))
-
-#     # 读取扰动参数
-#     rich.print(checkpoint)
-#     use_angle_reward = checkpoint.get("use_angle_reward", False)
-#     use_f_obs = (
-#         checkpoint.get("use_f_obs", False) or model.observation_space.shape[0] == 96
-#     )
-#     use_motor_obs = checkpoint.get("use_motor_obs", False)
-#     use_package_mass_obs = checkpoint.get("use_package_mass_obs", False)
-
-#     SHOULD_NOT_RANDOM_DISTURBANCE = True  # 在测试的时候不应该再允许千分之二的那个进行了
-#     use_f_disturbance = (
-#         checkpoint.get("use_f_disturbance", False) and len(disturbances) > 0
-#     )
-#     use_motor_disturbance = checkpoint.get("use_motor_disturbance", False)
-#     use_package_mass_disturbance = checkpoint.get("use_package_mass_disturbance", False)
-
-#     if SHOULD_NOT_RANDOM_DISTURBANCE:
-#         use_f_disturbance = False
-#         use_motor_disturbance = False
-#         use_package_mass_disturbance = False
-
-#     # 用于存储所有进程的结果
-#     from joblib import Parallel, delayed
-
-#     rewards_out = [0, 0, 0]
-
-#     def run_episode(episode_idx: int):
-#         # 每个进程创建独立环境
-#         env, raw_env = multiwalker_v9.env_with_raw(
-#             use_f_obs=use_f_obs,
-#             use_f_disturbance=use_f_disturbance,
-#             use_angle_reward=use_angle_reward,
-#             use_motor_disturbance=use_motor_disturbance,
-#             use_motor_obs=use_motor_obs,
-#             use_package_mass_obs=use_package_mass_obs,
-#             use_package_mass_disturbance=use_package_mass_disturbance,
-#             render_mode=render_mode,
-#             n_walkers=5,
-#             max_cycles=max_cycles,
-#         )
-#         env = ss.black_death_v3(env)
-#         env = ss.frame_stack_v1(env, 3)
-
-#         # 获取基础环境
-#         base_env = raw_env.get_raw_env()
-#         if base_env is None:
-#             print("base_env is None")
-#             base_env = MultiWalkerEnv()
-
-#         # 引入扰动
-#         turbances_array = []
-#         for disturbance in disturbances:
-#             turbances_array.append(DisturbanceFactory(base_env, **disturbance))
-#         if len(turbances_array) > 0:
-#             raw_env.set_disturbances(turbances_array)
-
-#         rewards = 0
-#         episode_frames = []
-#         episode_rewards_curve = []
-
-#         # 使用独立的seed
-#         env.reset(seed=cfg.seed + episode_idx)
-
-#         if len(turbances_array) > 0:
-#             raw_env.set_disturbances(turbances_array)
-
-#         episode_data = {
-#             "angles_abs": [],
-#             "angles_deg": [],
-#             "reward": 0,
-#             "steps": 0,
-#             "last_episode_angles": [],
-#             "last_episode_rewards": {agent: 0 for agent in env.agents},
-#         }
-
-#         step = 0
-#         terminated = False
-
-#         for agent in env.agent_iter():
-#             step += 1
-#             obs, reward, termination, truncation, info = env.last()
-#             episode_rewards_curve.append(base_env.rewards_group)
-#             _r = 0
-#             for a in env.agents:
-#                 _r += env.rewards[a]
-#                 episode_data["reward"] += env.rewards[a]
-#             rewards += _r / 3
-#             if termination or truncation:
-#                 terminated = True
-#                 break
-#             else:
-#                 act = model.predict(obs, deterministic=True)[0]
-
-#             curr_angle = base_env.package.angle
-#             episode_data["angles_abs"].append(abs(curr_angle))
-#             episode_data["angles_deg"].append(curr_angle / 3.14 * 180)
-
-#             if episode_idx == cfg.eval_episodes - 1:
-#                 r_array = env.render()
-#                 episode_frames.append(r_array)
-#                 episode_data["last_episode_angles"].append(curr_angle / 3.14 * 180)
-#                 for a in env.agents:
-#                     episode_data["last_episode_rewards"][a] += env.rewards[a]
-
-#             env.step(act)
-#         env.reset()
-#         episode_data["steps"] = step // 3
-#         env.close()
-
-#         return {
-#             "episode_data": episode_data,
-#             "frames": episode_frames if episode_idx == cfg.eval_episodes - 1 else [],
-#             "rewards_curve": episode_rewards_curve,
-#             "terminated": terminated,
-#             "rewards": rewards,
-#         }
-
-#     # 使用joblib并行执行episodes
-#     # verbose = 100
-#     results = Parallel(n_jobs=n_jobs, backend="loky")(
-#         delayed(run_episode)(i) for i in range(cfg.eval_episodes)
-#     )
-
-#     # 整理结果
-#     episodes_data = []
-#     frames = []
-#     rewards_curve = []
-#     terminate_cnt = 0
-
-#     for result in results:
-#         episodes_data.append(result["episode_data"])
-#         frames.extend(result["frames"])
-#         rewards_curve.extend(result["rewards_curve"])
-#         if result["episode_data"]["steps"] < max_cycles:
-#             terminate_cnt += 1
-#         rewards_out += result["rewards"]
-
-#     # 保存gif
-#     timestamp_str = time.strftime("%Y%m%d-%H%M%S")
-#     if save_gif and len(frames) > 0:
-#         export_gif(
-#             config_name,
-#             frames,
-#             gif_save_path,
-#             timestamp_str,
-#         )
-
-#     # 计算指标
-#     all_angles_abs = [angle for ep in episodes_data for angle in ep["angles_abs"]]
-
-#     # 计算平均奖励
-#     avg_reward = rewards_out[0] / cfg.eval_episodes
-#     avg_episode_reward = sum(episodes_data[-1]["last_episode_rewards"].values()) / len(
-#         episodes_data[-1]["last_episode_rewards"].values()
-#     )
-
-#     avg_angle = sum(all_angles_abs) / len(all_angles_abs)
-#     avg_angle_deg = avg_angle / 3.14 * 180
-#     avg_steps = sum(ep["steps"] for ep in episodes_data) / cfg.eval_episodes
-
-#     return {
-#         "reward": avg_reward,
-#         "angle": avg_angle,
-#         "angle_deg": avg_angle_deg,
-#         "steps": avg_steps,
-#         "episode_angles": episodes_data[-1]["last_episode_angles"],
-#         "angles_abs": all_angles_abs,
-#         "angles_deg": [angle for ep in episodes_data for angle in ep["angles_deg"]],
-#         "episode_rewards": avg_episode_reward,
-#         "terminate_cnt": terminate_cnt,
-#         "episodes_data": episodes_data,
-#         "rewards_curve": [reward_list.tolist() for reward_list in rewards_curve],
-#     }
+        end_time = time.time()
+        print(
+            f"处理[{checkpoint.algo}]<{checkpoint_type}>_{eval_scenario.name} 耗时: {end_time - start_time:.2f}秒"
+        )
+        return {
+            "desc": f"[{checkpoint.algo}]<{checkpoint_type}>_{eval_scenario.name}",
+            "terminate_cnt": terminate_cnt,
+            "angle_data": logger.test_data["angle_data"],
+        }
 
 
 @hydra.main(
@@ -416,7 +252,6 @@ def main(cfg: hydra_type.SettingConfig):
         name=cfg.setting.run.run_name + "_" + timestamp,
         config=_to_dict(cfg),
         save_code=True,
-        sync_tensorboard=True,
     )
 
     def process_checkpoint(checkpoint: hydra_type.CheckpointConfig):
