@@ -1,4 +1,5 @@
 """Train an algorithm."""
+
 import rich.pretty
 import wandb
 import hydra
@@ -7,10 +8,10 @@ import omegaconf
 import rich
 from harl.runners import RUNNER_REGISTRY
 
+
 def _to_dict(cfg1: DictConfig):
-    return omegaconf.OmegaConf.to_container(
-        cfg1, resolve=True, throw_on_missing=True
-    )
+    return omegaconf.OmegaConf.to_container(cfg1, resolve=True, throw_on_missing=True)
+
 
 @hydra.main(config_path="configs", config_name="config", version_base=None)
 def main(cfg: DictConfig):
@@ -26,25 +27,35 @@ def main(cfg: DictConfig):
 
     # 2. 使用当前时间生成名称
     from datetime import datetime
-    ts = datetime.now().strftime("%m%d-%H%M")
-    run_name = f"[{algorithm_name}]<{scenario_name}>_{ts}"
 
+    ts = datetime.now().strftime("%m%d-%H%M")
+    run_name = f"[{algorithm_name}]<{scenario_name}>"
+
+    group_name = cfg.group_name
+    if group_name == "latest":
+        group_name = datetime.now().strftime("%m%d/%H%M")
+
+    algo_args.logger.log_dir = f"./results/{group_name}"
     basic_info = {
         "env": env_name,
         "algo": algorithm_name,
         "exp_name": run_name,
     }
 
-    if env_name == 'pettingzoo_mw' and algo_args.train.get('episode_length') is not None:
+    if (
+        env_name == "pettingzoo_mw"
+        and algo_args.train.get("episode_length") is not None
+    ):
         algo_args.train.episode_length = 500
-    
+
     # 3. 初始化wandb
-    wandb.init(project="HARL", 
-               config=_to_dict(cfg), 
-               sync_tensorboard=True, 
-               name=run_name
-               )
-    
+    wandb.init(
+        project="HARL",
+        config=_to_dict(cfg),
+        sync_tensorboard=True,
+        name=run_name + f"_{ts}",
+    )
+
     # 4. 整理参数，转换为dict以传导给harl
     algo_dict = _to_dict(algo_args)
     del algo_dict["name"]

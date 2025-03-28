@@ -7,12 +7,17 @@ defaults:
   - override hydra/hydra_logging: colorlog
   - override hydra/launcher: submitit_local
   - _self_
+
 name: hi
+
+group_name: latest
 
 algorithm:
   device:
     cuda: False
     cuda_deterministic: False
+  logger:
+    log_dir: "./results"
 hydra:
   searchpath:
     - file://src/configs/
