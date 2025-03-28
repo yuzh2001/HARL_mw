@@ -2,9 +2,10 @@ defaults:
   - original/maddpg@_here_
   - _self_
 
-train:
-  # number of parallel environments for training data collection
-  n_rollout_threads: 20
-  eval_interval: 5000
+# train:
+#   # number of parallel environments for training data collection
+#   n_rollout_threads: 100
+#   eval_interval: 1000
+#   train_interval: 10
 
 name: maddpg

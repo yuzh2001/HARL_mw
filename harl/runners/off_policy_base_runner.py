@@ -37,6 +37,7 @@ class OffPolicyBaseRunner:
         self.algo_args = algo_args
         self.env_args = env_args
         self.best_eval = None
+        self.latest_eval_avg = -1000
 
         if "policy_freq" in self.algo_args["algo"]:
             self.policy_freq = self.algo_args["algo"]["policy_freq"]
@@ -290,12 +291,9 @@ class OffPolicyBaseRunner:
                     self.eval(cur_step)
                     if self.best_eval is None:
                         self.best_eval = -10000
-                    eval_result = np.mean(
-                        np.concatenate(
-                            [rewards for rewards in self.logger.eval_episode_rewards]
-                        )
-                    )
+                    eval_result = self.latest_eval_avg
                     if eval_result > self.best_eval:
+                        print(f"New best eval {eval_result}")
                         self.save()
                         self.best_eval = eval_result
                 else:
@@ -590,6 +588,7 @@ class OffPolicyBaseRunner:
                     [rewards for rewards in eval_episode_rewards if rewards]
                 )
                 eval_avg_rew = np.mean(eval_episode_rewards)
+                self.latest_eval_avg = eval_avg_rew
                 eval_avg_len = np.mean(episode_lens)
                 if "smac" in self.args["env"]:
                     print(
