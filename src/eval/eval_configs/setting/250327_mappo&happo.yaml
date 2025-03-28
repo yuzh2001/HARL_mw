@@ -6,7 +6,7 @@ run:
   run_name: 250327_mappo&happo
   seed: 0
   eval_episodes: 1000
-  eval_threads: 250
+  eval_threads: 100
 
   # 是否使用自定义的扰动，还是进行默认的eval
   use_custom_disturbance: False
@@ -16,18 +16,19 @@ run:
   result_file_name: 0327-16:19
 
 checkpoints:
-  - algo: mappo
-    timestamp: 0326-1829
-    desc: .
-  - algo: happo
-    timestamp: 0326-1829
-    desc: .
+  # - algo: mappo
+  #   timestamp: 0326-1829
+  #   desc: .
+  # - algo: happo
+  #   timestamp: 0326-1829
+  #   desc: .
   - algo: matd3
     timestamp: 0326-1842
     desc: .
 scenarios:
   - name: raw
     is_raw: True
+    disturbances: []
   - name: friction
     is_raw: False
     disturbances:

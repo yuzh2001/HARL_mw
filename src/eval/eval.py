@@ -226,22 +226,30 @@ def eval(
 
         # runner.run()
 
-        logger: PettingZooMWLogger = runner.logger
-        logger.is_testing = (
-            True  # 标识目前在eval；但是eval这个词被它用了，只能用test了。
-        )
-        runner.eval()
+        has_logger = hasattr(runner, "logger")
+        if has_logger:
+            logger: PettingZooMWLogger = runner.logger
+            logger.is_testing = (
+                True  # 标识目前在eval；但是eval这个词被它用了，只能用test了。
+            )
+            runner.eval()
+        else:
+            logger = None
+            runner.eval(1)
 
+        if has_logger:
+            terminate_arr = logger.test_data["terminate_at"]
+        else:
+            terminate_arr = runner.eval_episode_lens
         # 开始计算
         # 2.1 计算提前摔倒的次数
         terminate_cnt = 0
-        terminate_arr = logger.test_data["terminate_at"]
         package_x = []
         for i in range(len(terminate_arr)):
             if terminate_arr[i] + 2 < max_cycles:  # +2 去除一点边际问题
                 terminate_cnt += 1
             if terminate_arr[i] + 2 >= max_cycles:
-                package_x.append(logger.test_data["package_x"][i])
+                package_x.append(logger.test_data["package_x"][i] if has_logger else 0)
 
         end_time = time.time()
         print(
@@ -253,7 +261,7 @@ def eval(
             "variant": checkpoint_type,
             "scenario": eval_scenario.name,
             "terminate_cnt": terminate_cnt,
-            "angle_data": logger.test_data["angle_data"],
+            "angle_data": logger.test_data["angle_data"] if has_logger else [],
             "package_x": sum(package_x) / len(package_x),
         }
 
