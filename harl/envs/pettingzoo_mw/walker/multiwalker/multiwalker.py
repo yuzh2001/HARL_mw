@@ -321,7 +321,7 @@ class raw_env(AECEnv, EzPickle):
                         for ter in self.env.terrain:
                             ter.fixtures[0].friction = 2.5
                 else:
-                    if self.np_random.random() < 0.0025:
+                    if self.np_random.random() < 0.001:
                         # print(f"开始扰动，{self.env.frames}")
                         self.disturbance["is_disturbancing"] = True
                         self.disturbance["start_at"] = self.env.frames
@@ -336,7 +336,7 @@ class raw_env(AECEnv, EzPickle):
                             walker.speed_factor_hip = 4
                             walker.speed_factor_knee = 6
                 else:
-                    if self.np_random.random() < 0.0025:
+                    if self.np_random.random() < 0.001:
                         self.disturbance["is_disturbancing"] = True
                         self.disturbance["start_at"] = self.env.frames
                         self.disturbance["end_at"] = self.env.frames + 200
@@ -349,7 +349,7 @@ class raw_env(AECEnv, EzPickle):
                         self.disturbance["is_disturbancing"] = False
                         self.env.package.mass = 4.57
                 else:
-                    if self.np_random.random() < 0.0025:
+                    if self.np_random.random() < 0.001:
                         self.disturbance["is_disturbancing"] = True
                         self.disturbance["start_at"] = self.env.frames
                         self.disturbance["end_at"] = self.env.frames + 200
