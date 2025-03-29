@@ -129,25 +129,25 @@ def run_evaluations(
             )
             results.append(no_obs_results)
 
-            # # 以下是baseline或者说消融；把obs的checkpoint在没有扰动的环境上测试
-            # _sc = deepcopy(scenario)
-            # _sc.is_raw = True
-            # _sc.name = "raw"
-            # _sc.disturbances = None
-            # obs_raw_results = eval(
-            #     config,
-            #     checkpoint=checkpoint,
-            #     checkpoint_type=f"disturb_{scenario.name}_obs",
-            #     eval_scenario=_sc,
-            # )
-            # results.append(obs_raw_results)
-            # no_obs_raw_results = eval(
-            #     config,
-            #     checkpoint=checkpoint,
-            #     checkpoint_type=f"disturb_{scenario.name}_no_obs",
-            #     eval_scenario=_sc,
-            # )
-            # results.append(no_obs_raw_results)
+            # 以下是baseline或者说消融；把obs的checkpoint在没有扰动的环境上测试
+            _sc = deepcopy(scenario)
+            _sc.is_raw = True
+            _sc.name = "raw"
+            _sc.disturbances = None
+            obs_raw_results = eval(
+                config,
+                checkpoint=checkpoint,
+                checkpoint_type=f"disturb_{scenario.name}_obs",
+                eval_scenario=_sc,
+            )
+            results.append(obs_raw_results)
+            no_obs_raw_results = eval(
+                config,
+                checkpoint=checkpoint,
+                checkpoint_type=f"disturb_{scenario.name}_no_obs",
+                eval_scenario=_sc,
+            )
+            results.append(no_obs_raw_results)
 
     return results
 
@@ -159,7 +159,7 @@ def eval(
     eval_scenario: hydra_type.ScenarioConfig,
 ):
     start_time = time.time()
-    base_checkpoint_path = f"./results/{checkpoint.timestamp}/pettingzoo_mw/multiwalker/{checkpoint.algo}/[{checkpoint.algo}]<{checkpoint_type}>"
+    base_checkpoint_path = f"./results/pettingzoo_mw/multiwalker/{checkpoint.algo}/[{checkpoint.algo}]<{checkpoint_type}>_{checkpoint.timestamp}"
     seed_folder = next(
         folder
         for folder in os.listdir(base_checkpoint_path)
@@ -245,11 +245,11 @@ def eval(
         # 2.1 计算提前摔倒的次数
         terminate_cnt = 0
         package_x = []
-        print(len(terminate_arr))
         for i in range(len(terminate_arr)):
             if terminate_arr[i] + 2 < max_cycles:  # +2 去除一点边际问题
                 terminate_cnt += 1
-            package_x.append(logger.test_data["package_x"][i] if has_logger else 0)
+            if terminate_arr[i] + 2 >= max_cycles:
+                package_x.append(logger.test_data["package_x"][i] if has_logger else 0)
 
         end_time = time.time()
         print(

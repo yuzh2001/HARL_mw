@@ -38,6 +38,7 @@ class OffPolicyBaseRunner:
         self.env_args = env_args
         self.best_eval = None
         self.latest_eval_avg = -1000
+        self.eval_episode_lens = []
 
         if "policy_freq" in self.algo_args["algo"]:
             self.policy_freq = self.algo_args["algo"]["policy_freq"]
@@ -537,6 +538,7 @@ class OffPolicyBaseRunner:
         if "football" in self.args["env"]:
             eval_score_cnt = 0
         episode_lens = []
+        episode_xs = []
         one_episode_len = np.zeros(
             self.algo_args["eval"]["n_eval_rollout_threads"], dtype=np.int32
         )
@@ -580,6 +582,7 @@ class OffPolicyBaseRunner:
                     )
                     one_episode_rewards[eval_i] = []
                     episode_lens.append(one_episode_len[eval_i].copy())
+                    episode_xs.append(eval_infos[eval_i][0]["package_x"])
                     one_episode_len[eval_i] = 0
 
             if eval_episode >= self.algo_args["eval"]["eval_episodes"]:
@@ -590,6 +593,8 @@ class OffPolicyBaseRunner:
                 eval_avg_rew = np.mean(eval_episode_rewards)
                 self.latest_eval_avg = eval_avg_rew
                 eval_avg_len = np.mean(episode_lens)
+
+                self.eval_episode_lens = episode_lens
                 if "smac" in self.args["env"]:
                     print(
                         "Eval win rate is {}, eval average episode rewards is {}, eval average episode length is {}.".format(
